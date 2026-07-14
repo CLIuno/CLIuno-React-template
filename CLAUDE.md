@@ -35,4 +35,8 @@ Keep all URLs inside `src/apis/`.
 
 - oxc tooling: `oxlint` + `oxfmt` (`semi: false`, single quotes); prettier for css/md/html.
 - TypeScript 6.0 (`ignoreDeprecations` is set — don't downgrade TS).
-- Conventional commits (commitlint + husky); Tailwind v4 + daisyUI with `tw:` prefix.
+- Conventional commits (commitlint + husky); Tailwind v4 (no prefix) + **shadcn/ui on
+  Base UI primitives** — components vendored in `src/components/ui/`, `cn()` in
+  `src/lib/utils.ts`, theme tokens in `src/assets/index.css`, dark mode = `.dark` class;
+  add components with `npx shadcn@latest add <name> -y` (if files land in a literal
+  `./@/` dir, move them into `src/`).
