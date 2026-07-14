@@ -1,7 +1,21 @@
-import { Icon } from '@iconify/react'
+import {
+  ArrowLeftIcon,
+  Loader2Icon,
+  MessageSquareIcon,
+  PencilIcon,
+  SendIcon,
+  Trash2Icon,
+  UserIcon,
+} from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
 import { timeAgo } from '@/utils/timeAgo'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
 
 interface Comment {
   id: string
@@ -118,201 +132,198 @@ export default function PostDetailView() {
   }, [fetchPost])
 
   return (
-    <div className="tw:max-w-3xl tw:mx-auto tw:px-4 tw:py-8">
+    <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Back */}
-      <Link to="/posts" className="tw:btn tw:btn-ghost tw:btn-sm tw:mb-6">
-        <Icon icon="mdi:arrow-left" className="tw:w-5 tw:h-5" />
+      <Button variant="ghost" size="sm" className="mb-6" render={<Link to="/posts" />}>
+        <ArrowLeftIcon />
         Back to Posts
-      </Link>
+      </Button>
 
       {/* Loading */}
       {loading && (
-        <div className="tw:flex tw:justify-center tw:py-20">
-          <span className="tw:loading tw:loading-spinner tw:loading-lg tw:text-primary" />
+        <div className="flex justify-center py-20">
+          <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {!loading && post && (
         <>
           {/* Detail Card */}
-          <div className="tw:card tw:bg-base-100 tw:shadow-lg tw:mb-6">
-            <div className="tw:card-body">
+          <Card className="mb-6">
+            <CardContent className="space-y-4">
               {editing ? (
-                <form onSubmit={saveEdit} className="tw:space-y-4">
-                  <input
+                <form onSubmit={saveEdit} className="space-y-4">
+                  <Input
                     value={editTitle}
                     onChange={(e) => setEditTitle(e.target.value)}
                     type="text"
-                    className="tw:input tw:input-bordered tw:w-full tw:text-xl tw:font-bold"
+                    className="text-lg font-semibold"
                   />
-                  <textarea
+                  <Textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
-                    className="tw:textarea tw:textarea-bordered tw:w-full"
                     rows={5}
                   />
-                  <div className="tw:flex tw:gap-2 tw:justify-end">
-                    <button
+                  <div className="flex justify-end gap-2">
+                    <Button
                       type="button"
+                      variant="outline"
+                      size="sm"
                       onClick={() => setEditing(false)}
-                      className="tw:btn tw:btn-sm"
                     >
                       Cancel
-                    </button>
-                    <button type="submit" className="tw:btn tw:btn-sm tw:btn-primary">
+                    </Button>
+                    <Button type="submit" size="sm">
                       Save
-                    </button>
+                    </Button>
                   </div>
                 </form>
               ) : (
-                <div className="tw:flex tw:items-start tw:justify-between">
-                  <div>
-                    <h1 className="tw:text-2xl tw:font-bold">{post.title}</h1>
-                    {post.content && (
-                      <p className="tw:mt-3 tw:text-base-content/70">{post.content}</p>
-                    )}
+                <article className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <h1 className="text-2xl font-bold tracking-tight">{post.title}</h1>
+                    {post.content && <p className="mt-3 text-muted-foreground">{post.content}</p>}
                   </div>
                   {post.user.id === user?.id && (
-                    <div className="tw:flex tw:gap-2">
-                      <button onClick={startEdit} className="tw:btn tw:btn-sm tw:btn-outline">
-                        <Icon icon="mdi:pencil" className="tw:w-4 tw:h-4" />
-                      </button>
-                    </div>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={startEdit}
+                      className="shrink-0"
+                      aria-label="Edit post"
+                    >
+                      <PencilIcon />
+                    </Button>
                   )}
-                </div>
+                </article>
               )}
 
               {/* Meta */}
-              <div className="tw:flex tw:items-center tw:gap-4 tw:mt-4 tw:pt-4 tw:border-t tw:border-base-200 tw:text-sm tw:text-base-content/50">
+              <Separator />
+              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <Link
                   to={`/users/${post.user.id}`}
-                  className="tw:flex tw:items-center tw:gap-1 hover:tw:text-primary"
+                  className="flex items-center gap-1 transition-colors hover:text-foreground"
                 >
-                  <Icon icon="mdi:account" className="tw:w-4 tw:h-4" />
+                  <UserIcon className="size-3.5" />
                   {post.user.first_name} {post.user.last_name} (@{post.user.username})
                 </Link>
                 <span>{timeAgo(post.createdAt)}</span>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Comments Section */}
-          <div className="tw:card tw:bg-base-100 tw:shadow-lg">
-            <div className="tw:card-body">
-              <h2 className="tw:text-xl tw:font-bold tw:mb-4">
-                <Icon
-                  icon="mdi:comment-multiple-outline"
-                  className="tw:w-6 tw:h-6 tw:inline tw:mr-1"
-                />
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <MessageSquareIcon className="size-5" />
                 Comments ({post.comments?.length || 0})
-              </h2>
-
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
               {/* Add Comment */}
-              <form onSubmit={addComment} className="tw:mb-6">
-                <div className="tw:flex tw:gap-2">
-                  <input
-                    value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    type="text"
-                    placeholder="Write a comment..."
-                    className="tw:input tw:input-bordered tw:flex-1"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    className="tw:btn tw:btn-primary"
-                    disabled={submittingComment}
-                  >
-                    <Icon icon="mdi:send" className="tw:w-5 tw:h-5" />
-                  </button>
-                </div>
+              <form onSubmit={addComment} className="flex gap-2">
+                <Input
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  type="text"
+                  placeholder="Write a comment..."
+                  className="flex-1"
+                  required
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  disabled={submittingComment}
+                  aria-label="Send comment"
+                >
+                  {submittingComment ? <Loader2Icon className="animate-spin" /> : <SendIcon />}
+                </Button>
               </form>
 
               {/* Comments List */}
               {post.comments?.length ? (
-                <div className="tw:space-y-4">
+                <div className="space-y-4">
                   {post.comments.map((comment) => (
-                    <div key={comment.id} className="tw:flex tw:gap-3">
-                      <div className="tw:avatar tw:placeholder">
-                        <div className="tw:bg-neutral tw:text-neutral-content tw:w-8 tw:h-8 tw:rounded-full">
-                          <span className="tw:text-xs">
-                            {comment.user.first_name[0]}
-                            {comment.user.last_name[0]}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="tw:flex-1 tw:bg-base-200 tw:rounded-lg tw:p-3">
-                        <div className="tw:flex tw:items-center tw:justify-between tw:mb-1">
+                    <div key={comment.id} className="flex gap-3">
+                      <Avatar>
+                        <AvatarFallback className="text-xs">
+                          {comment.user.first_name[0]}
+                          {comment.user.last_name[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex-1 rounded-lg bg-muted p-3">
+                        <div className="mb-1 flex items-center justify-between gap-2">
                           <Link
                             to={`/users/${comment.user.id}`}
-                            className="tw:font-semibold tw:text-sm hover:tw:text-primary"
+                            className="text-sm font-semibold transition-colors hover:text-primary"
                           >
                             {comment.user.username}
                           </Link>
-                          <div className="tw:flex tw:items-center tw:gap-2">
-                            <span className="tw:text-xs tw:text-base-content/50">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
                               {timeAgo(comment.createdAt)}
                             </span>
                             {comment.user.id === user?.id && (
                               <>
-                                <button
+                                <Button
+                                  variant="ghost"
+                                  size="icon-xs"
                                   onClick={() => {
                                     setEditingCommentId(comment.id)
                                     setEditCommentContent(comment.content)
                                   }}
-                                  className="tw:btn tw:btn-ghost tw:btn-xs"
+                                  aria-label="Edit comment"
                                 >
-                                  <Icon icon="mdi:pencil" className="tw:w-3 tw:h-3" />
-                                </button>
-                                <button
+                                  <PencilIcon />
+                                </Button>
+                                <Button
+                                  variant="destructive"
+                                  size="icon-xs"
                                   onClick={() => deleteComment(comment.id)}
-                                  className="tw:btn tw:btn-ghost tw:btn-xs tw:text-error"
+                                  aria-label="Delete comment"
                                 >
-                                  <Icon icon="mdi:delete" className="tw:w-3 tw:h-3" />
-                                </button>
+                                  <Trash2Icon />
+                                </Button>
                               </>
                             )}
                           </div>
                         </div>
 
                         {editingCommentId === comment.id ? (
-                          <div className="tw:flex tw:gap-2">
-                            <input
+                          <div className="flex gap-2">
+                            <Input
                               value={editCommentContent}
                               onChange={(e) => setEditCommentContent(e.target.value)}
-                              className="tw:input tw:input-sm tw:input-bordered tw:flex-1"
+                              className="flex-1 bg-background"
                             />
-                            <button
-                              onClick={() => saveEditComment(comment.id)}
-                              className="tw:btn tw:btn-sm tw:btn-primary"
-                            >
+                            <Button size="sm" onClick={() => saveEditComment(comment.id)}>
                               Save
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
                               onClick={() => setEditingCommentId(null)}
-                              className="tw:btn tw:btn-sm"
                             >
                               Cancel
-                            </button>
+                            </Button>
                           </div>
                         ) : (
-                          <p className="tw:text-sm">{comment.content}</p>
+                          <p className="text-sm">{comment.content}</p>
                         )}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="tw:text-center tw:py-8 tw:text-base-content/40">
-                  <Icon
-                    icon="mdi:comment-off-outline"
-                    className="tw:w-10 tw:h-10 tw:mx-auto tw:mb-2"
-                  />
+                <div className="py-8 text-center text-muted-foreground">
+                  <MessageSquareIcon className="mx-auto mb-2 size-10 text-muted-foreground/40" />
                   <p>No comments yet. Be the first!</p>
                 </div>
               )}
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

@@ -6,14 +6,13 @@ export function useTheme() {
   })
 
   useEffect(() => {
-    const theme = isDark ? 'dark' : 'light'
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem('theme', theme)
+    document.documentElement.classList.toggle('dark', isDark)
+    localStorage.setItem('theme', isDark ? 'dark' : 'light')
   }, [isDark])
 
-  const onThemeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setIsDark(e.target.checked)
+  const toggleTheme = useCallback(() => {
+    setIsDark((prev) => !prev)
   }, [])
 
-  return { isDark, onThemeChange }
+  return { isDark, toggleTheme }
 }

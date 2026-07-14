@@ -1,7 +1,28 @@
-import { Icon } from '@iconify/react'
+import {
+  FileTextIcon,
+  Loader2Icon,
+  MessageSquareIcon,
+  PlusIcon,
+  Trash2Icon,
+  UserIcon,
+} from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
 import { timeAgo } from '@/utils/timeAgo'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 interface Post {
   id: string
@@ -74,162 +95,147 @@ export default function PostsView() {
   }, [fetchPosts])
 
   return (
-    <div className="tw:max-w-4xl tw:mx-auto tw:px-4 tw:py-8">
+    <div className="mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
-      <div className="tw:flex tw:items-center tw:justify-between tw:mb-8">
+      <div className="mb-8 flex items-center justify-between gap-4">
         <div>
-          <h1 className="tw:text-3xl tw:font-bold tw:text-base-content">Posts</h1>
-          <p className="tw:text-base-content/60">Share and discuss with the community</p>
+          <h1 className="text-3xl font-bold tracking-tight">Posts</h1>
+          <p className="text-muted-foreground">Share and discuss with the community</p>
         </div>
-        <button onClick={() => setShowCreateModal(true)} className="tw:btn tw:btn-primary">
-          <Icon icon="mdi:plus" className="tw:w-5 tw:h-5" />
+        <Button onClick={() => setShowCreateModal(true)}>
+          <PlusIcon />
           New Post
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
-      <div className="tw:tabs tw:tabs-boxed tw:mb-6 tw:w-fit">
+      <div className="mb-6 inline-flex w-fit items-center gap-1 rounded-lg bg-muted p-1">
         {(['all', 'mine'] as Filter[]).map((f) => (
-          <button
+          <Button
             key={f}
-            className={`tw:tab ${filter === f ? 'tw:tab-active' : ''}`}
+            variant="ghost"
+            size="sm"
             onClick={() => setFilter(f)}
+            className={cn(
+              'text-muted-foreground',
+              filter === f && 'bg-background text-foreground shadow-sm hover:bg-background',
+            )}
           >
             {f.charAt(0).toUpperCase() + f.slice(1)}
-          </button>
+          </Button>
         ))}
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="tw:flex tw:justify-center tw:py-20">
-          <span className="tw:loading tw:loading-spinner tw:loading-lg tw:text-primary" />
+        <div className="flex justify-center py-20">
+          <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {/* Empty State */}
       {!loading && filteredPosts.length === 0 && (
-        <div className="tw:text-center tw:py-20">
-          <Icon
-            icon="mdi:post-outline"
-            className="tw:w-16 tw:h-16 tw:mx-auto tw:text-base-content/30"
-          />
-          <h3 className="tw:text-xl tw:font-semibold tw:mt-4">No posts yet</h3>
-          <p className="tw:text-base-content/60 tw:mt-2">Create your first post to get started!</p>
+        <div className="py-20 text-center">
+          <FileTextIcon className="mx-auto size-14 text-muted-foreground/40" />
+          <h3 className="mt-4 text-xl font-semibold">No posts yet</h3>
+          <p className="mt-2 text-muted-foreground">Create your first post to get started!</p>
         </div>
       )}
 
       {/* Posts List */}
       {!loading && filteredPosts.length > 0 && (
-        <div className="tw:space-y-3">
+        <div className="space-y-3">
           {filteredPosts.map((post) => (
-            <div
-              key={post.id}
-              className="tw:card tw:bg-base-100 tw:shadow-sm hover:tw:shadow-md tw:transition-shadow"
-            >
-              <div className="tw:card-body tw:p-4">
-                <div className="tw:flex tw:items-start tw:gap-3">
-                  {/* Content */}
-                  <div className="tw:flex-1 tw:min-w-0">
-                    <Link to={`/posts/${post.id}`}>
-                      <h3 className="tw:font-semibold tw:text-lg hover:tw:text-primary tw:transition-colors">
-                        {post.title}
-                      </h3>
-                    </Link>
-                    {post.content && (
-                      <p className="tw:text-base-content/60 tw:text-sm tw:mt-1 tw:line-clamp-2">
-                        {post.content}
-                      </p>
-                    )}
-                    <div className="tw:flex tw:items-center tw:gap-4 tw:mt-2 tw:text-sm tw:text-base-content/50">
-                      <Link
-                        to={`/users/${post.user.id}`}
-                        className="tw:flex tw:items-center tw:gap-1 hover:tw:text-primary"
-                      >
-                        <Icon icon="mdi:account" className="tw:w-4 tw:h-4" />
-                        {post.user.username}
-                      </Link>
-                      <span className="tw:flex tw:items-center tw:gap-1">
-                        <Icon icon="mdi:comment-outline" className="tw:w-4 tw:h-4" />
-                        {post.comments?.length || 0}
-                      </span>
-                      <span>{timeAgo(post.createdAt)}</span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  {post.user.id === user?.id && (
-                    <div className="tw:dropdown tw:dropdown-end">
-                      <button className="tw:btn tw:btn-ghost tw:btn-sm tw:btn-circle">
-                        <Icon icon="mdi:dots-vertical" className="tw:w-5 tw:h-5" />
-                      </button>
-                      <ul className="tw:dropdown-content tw:menu tw:p-2 tw:shadow tw:bg-base-100 tw:rounded-box tw:w-40 tw:z-10">
-                        <li>
-                          <Link to={`/posts/${post.id}`}>
-                            <Icon icon="mdi:eye" className="tw:w-4 tw:h-4" /> View
-                          </Link>
-                        </li>
-                        <li>
-                          <button onClick={() => deletePost(post.id)} className="tw:text-error">
-                            <Icon icon="mdi:delete" className="tw:w-4 tw:h-4" /> Delete
-                          </button>
-                        </li>
-                      </ul>
-                    </div>
+            <Card key={post.id} className="transition-shadow hover:shadow-md">
+              <CardContent className="flex items-start gap-3">
+                {/* Content */}
+                <div className="min-w-0 flex-1">
+                  <Link to={`/posts/${post.id}`}>
+                    <h3 className="text-lg font-semibold transition-colors hover:text-primary">
+                      {post.title}
+                    </h3>
+                  </Link>
+                  {post.content && (
+                    <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                      {post.content}
+                    </p>
                   )}
+                  <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
+                    <Link
+                      to={`/users/${post.user.id}`}
+                      className="flex items-center gap-1 transition-colors hover:text-foreground"
+                    >
+                      <UserIcon className="size-3.5" />
+                      {post.user.username}
+                    </Link>
+                    <span className="flex items-center gap-1">
+                      <MessageSquareIcon className="size-3.5" />
+                      {post.comments?.length || 0}
+                    </span>
+                    <span>{timeAgo(post.createdAt)}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Actions */}
+                {post.user.id === user?.id && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => deletePost(post.id)}
+                    className="text-destructive hover:text-destructive"
+                    aria-label="Delete post"
+                  >
+                    <Trash2Icon />
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}
 
-      {/* Create Modal */}
-      {showCreateModal && (
-        <div className="tw:modal tw:modal-open">
-          <div className="tw:modal-box">
-            <h3 className="tw:font-bold tw:text-lg tw:mb-4">Create New Post</h3>
-            <form onSubmit={createPost} className="tw:space-y-4">
-              <fieldset className="tw:fieldset">
-                <legend className="tw:fieldset-legend">Title</legend>
-                <input
-                  value={newTitle}
-                  onChange={(e) => setNewTitle(e.target.value)}
-                  type="text"
-                  placeholder="Post title"
-                  className="tw:input tw:w-full"
-                  required
-                />
-              </fieldset>
-              <fieldset className="tw:fieldset">
-                <legend className="tw:fieldset-legend">Content</legend>
-                <textarea
-                  value={newContent}
-                  onChange={(e) => setNewContent(e.target.value)}
-                  placeholder="Write your post..."
-                  className="tw:textarea tw:textarea-bordered tw:w-full"
-                  rows={5}
-                  required
-                />
-              </fieldset>
-              <div className="tw:modal-action">
-                <button type="button" onClick={() => setShowCreateModal(false)} className="tw:btn">
-                  Cancel
-                </button>
-                <button type="submit" className="tw:btn tw:btn-primary" disabled={creating}>
-                  {creating ? 'Creating...' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-          <button
-            type="button"
-            className="tw:modal-backdrop"
-            onClick={() => setShowCreateModal(false)}
-            aria-label="Close modal"
-          />
-        </div>
-      )}
+      {/* Create Dialog */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Post</DialogTitle>
+            <DialogDescription>Share something with the community.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={createPost} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="post-title">Title</Label>
+              <Input
+                id="post-title"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                type="text"
+                placeholder="Post title"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="post-content">Content</Label>
+              <Textarea
+                id="post-content"
+                value={newContent}
+                onChange={(e) => setNewContent(e.target.value)}
+                placeholder="Write your post..."
+                rows={5}
+                required
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={creating}>
+                {creating && <Loader2Icon className="animate-spin" />}
+                {creating ? 'Creating...' : 'Create'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

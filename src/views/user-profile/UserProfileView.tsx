@@ -1,6 +1,10 @@
-import { Icon } from '@iconify/react'
+import { ArrowLeftIcon, Loader2Icon, UserCheckIcon, UserPlusIcon, UsersIcon } from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Separator } from '@/components/ui/separator'
 
 interface ProfileUser {
   id: string
@@ -15,6 +19,36 @@ interface FollowUser {
   username: string
   first_name: string
   last_name: string
+}
+
+function FollowList({ users, emptyText }: Readonly<{ users: FollowUser[]; emptyText: string }>) {
+  if (users.length === 0) {
+    return <p className="text-sm text-muted-foreground">{emptyText}</p>
+  }
+  return (
+    <div className="space-y-1">
+      {users.map((f) => (
+        <Link
+          key={f.id}
+          to={`/users/${f.id}`}
+          className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
+        >
+          <Avatar>
+            <AvatarFallback className="text-xs">
+              {f.first_name[0]}
+              {f.last_name[0]}
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <p className="text-sm font-medium">
+              {f.first_name} {f.last_name}
+            </p>
+            <p className="text-xs text-muted-foreground">@{f.username}</p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  )
 }
 
 export default function UserProfileView() {
@@ -88,152 +122,94 @@ export default function UserProfileView() {
   }, [fetchProfile])
 
   return (
-    <div className="tw:max-w-3xl tw:mx-auto tw:px-4 tw:py-8">
-      <Link to="/users" className="tw:btn tw:btn-ghost tw:btn-sm tw:mb-6">
-        <Icon icon="mdi:arrow-left" className="tw:w-5 tw:h-5" />
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      <Button variant="ghost" size="sm" className="mb-6" render={<Link to="/users" />}>
+        <ArrowLeftIcon />
         Back to Users
-      </Link>
+      </Button>
 
       {loading && (
-        <div className="tw:flex tw:justify-center tw:py-20">
-          <span className="tw:loading tw:loading-spinner tw:loading-lg tw:text-primary" />
+        <div className="flex justify-center py-20">
+          <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {!loading && profileUser && (
         <>
           {/* Profile Card */}
-          <div className="tw:card tw:bg-base-100 tw:shadow-lg tw:overflow-hidden tw:mb-6">
-            {/* Cover */}
-            <div className="tw:h-32 tw:bg-linear-to-r tw:from-primary tw:to-secondary" />
+          <Card className="mb-6">
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-4">
+                {/* Avatar */}
+                <Avatar className="size-20">
+                  <AvatarFallback className="text-2xl">
+                    {profileUser.first_name[0]}
+                    {profileUser.last_name[0]}
+                  </AvatarFallback>
+                </Avatar>
 
-            <div className="tw:card-body tw:pt-0">
-              {/* Avatar */}
-              <div className="tw:flex tw:items-end tw:gap-4 tw:-mt-12">
-                <div className="tw:avatar tw:placeholder">
-                  <div className="tw:bg-primary tw:text-primary-content tw:w-24 tw:h-24 tw:rounded-full tw:ring-4 tw:ring-base-100">
-                    <span className="tw:text-3xl">
-                      {profileUser.first_name[0]}
-                      {profileUser.last_name[0]}
-                    </span>
-                  </div>
-                </div>
-                <div className="tw:flex-1 tw:mb-2">
-                  <h1 className="tw:text-2xl tw:font-bold">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl font-bold tracking-tight">
                     {profileUser.first_name} {profileUser.last_name}
                   </h1>
-                  <p className="tw:text-base-content/60">@{profileUser.username}</p>
+                  <p className="text-muted-foreground">@{profileUser.username}</p>
                 </div>
+
                 {!isOwnProfile && (
-                  <button
+                  <Button
+                    variant={isFollowing ? 'outline' : 'default'}
                     onClick={toggleFollow}
                     disabled={togglingFollow}
-                    className={`tw:btn tw:mb-2 ${isFollowing ? 'tw:btn-outline' : 'tw:btn-primary'}`}
+                    className="shrink-0"
                   >
-                    {togglingFollow ? (
-                      <span className="tw:loading tw:loading-spinner tw:loading-xs" />
-                    ) : (
-                      <Icon
-                        icon={isFollowing ? 'mdi:account-check' : 'mdi:account-plus'}
-                        className="tw:w-5 tw:h-5"
-                      />
-                    )}
+                    {togglingFollow && <Loader2Icon className="animate-spin" />}
+                    {!togglingFollow && (isFollowing ? <UserCheckIcon /> : <UserPlusIcon />)}
                     {isFollowing ? 'Following' : 'Follow'}
-                  </button>
+                  </Button>
                 )}
               </div>
 
-              {/* Stats */}
-              <div className="tw:stats tw:shadow tw:mt-4">
-                <div className="tw:stat tw:place-items-center">
-                  <div className="tw:stat-title">Followers</div>
-                  <div className="tw:stat-value tw:text-primary">{followers.length}</div>
-                </div>
-                <div className="tw:stat tw:place-items-center">
-                  <div className="tw:stat-title">Following</div>
-                  <div className="tw:stat-value tw:text-secondary">{following.length}</div>
-                </div>
+              <Separator />
+
+              {/* Counts */}
+              <div className="flex gap-6 text-sm">
+                <p>
+                  <span className="font-semibold">{followers.length}</span>{' '}
+                  <span className="text-muted-foreground">Followers</span>
+                </p>
+                <p>
+                  <span className="font-semibold">{following.length}</span>{' '}
+                  <span className="text-muted-foreground">Following</span>
+                </p>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
           {/* Followers / Following Lists */}
-          <div className="tw:grid tw:grid-cols-1 md:tw:grid-cols-2 tw:gap-4">
-            {/* Followers */}
-            <div className="tw:card tw:bg-base-100 tw:shadow-sm">
-              <div className="tw:card-body">
-                <h2 className="tw:card-title tw:text-lg">
-                  <Icon icon="mdi:account-group" className="tw:w-5 tw:h-5" />
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UsersIcon className="size-4" />
                   Followers ({followers.length})
-                </h2>
-                {followers.length === 0 ? (
-                  <p className="tw:text-base-content/50 tw:text-sm">No followers yet</p>
-                ) : (
-                  <div className="tw:space-y-2">
-                    {followers.map((f) => (
-                      <Link
-                        key={f.id}
-                        to={`/users/${f.id}`}
-                        className="tw:flex tw:items-center tw:gap-3 tw:p-2 tw:rounded-lg hover:tw:bg-base-200 tw:transition-colors"
-                      >
-                        <div className="tw:avatar tw:placeholder">
-                          <div className="tw:bg-neutral tw:text-neutral-content tw:w-8 tw:h-8 tw:rounded-full">
-                            <span className="tw:text-xs">
-                              {f.first_name[0]}
-                              {f.last_name[0]}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="tw:font-medium tw:text-sm">
-                            {f.first_name} {f.last_name}
-                          </p>
-                          <p className="tw:text-xs tw:text-base-content/50">@{f.username}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FollowList users={followers} emptyText="No followers yet" />
+              </CardContent>
+            </Card>
 
-            {/* Following */}
-            <div className="tw:card tw:bg-base-100 tw:shadow-sm">
-              <div className="tw:card-body">
-                <h2 className="tw:card-title tw:text-lg">
-                  <Icon icon="mdi:account-arrow-right" className="tw:w-5 tw:h-5" />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserCheckIcon className="size-4" />
                   Following ({following.length})
-                </h2>
-                {following.length === 0 ? (
-                  <p className="tw:text-base-content/50 tw:text-sm">Not following anyone yet</p>
-                ) : (
-                  <div className="tw:space-y-2">
-                    {following.map((f) => (
-                      <Link
-                        key={f.id}
-                        to={`/users/${f.id}`}
-                        className="tw:flex tw:items-center tw:gap-3 tw:p-2 tw:rounded-lg hover:tw:bg-base-200 tw:transition-colors"
-                      >
-                        <div className="tw:avatar tw:placeholder">
-                          <div className="tw:bg-neutral tw:text-neutral-content tw:w-8 tw:h-8 tw:rounded-full">
-                            <span className="tw:text-xs">
-                              {f.first_name[0]}
-                              {f.last_name[0]}
-                            </span>
-                          </div>
-                        </div>
-                        <div>
-                          <p className="tw:font-medium tw:text-sm">
-                            {f.first_name} {f.last_name}
-                          </p>
-                          <p className="tw:text-xs tw:text-base-content/50">@{f.username}</p>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FollowList users={following} emptyText="Not following anyone yet" />
+              </CardContent>
+            </Card>
           </div>
         </>
       )}

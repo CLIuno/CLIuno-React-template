@@ -1,7 +1,21 @@
-import { Icon } from '@iconify/react'
+import {
+  ArrowLeftIcon,
+  CheckIcon,
+  Loader2Icon,
+  PencilIcon,
+  Undo2Icon,
+  UserIcon,
+} from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
 import { timeAgo } from '@/utils/timeAgo'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Separator } from '@/components/ui/separator'
+import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 interface Todo {
   id: string
@@ -68,102 +82,101 @@ export default function TodoDetailView() {
   }, [fetchTodo])
 
   return (
-    <div className="tw:max-w-3xl tw:mx-auto tw:px-4 tw:py-8">
+    <div className="mx-auto max-w-3xl px-4 py-8">
       {/* Back */}
-      <Link to="/todos" className="tw:btn tw:btn-ghost tw:btn-sm tw:mb-6">
-        <Icon icon="mdi:arrow-left" className="tw:w-5 tw:h-5" />
+      <Button variant="ghost" size="sm" className="mb-6" render={<Link to="/todos" />}>
+        <ArrowLeftIcon />
         Back to Todos
-      </Link>
+      </Button>
 
       {/* Loading */}
       {loading && (
-        <div className="tw:flex tw:justify-center tw:py-20">
-          <span className="tw:loading tw:loading-spinner tw:loading-lg tw:text-primary" />
+        <div className="flex justify-center py-20">
+          <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {!loading && todo && (
-        <div className="tw:card tw:bg-base-100 tw:shadow-lg">
-          <div className="tw:card-body">
+        <Card>
+          <CardContent className="space-y-4">
             {editing ? (
-              <form onSubmit={saveEdit} className="tw:space-y-4">
-                <input
+              <form onSubmit={saveEdit} className="space-y-4">
+                <Input
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
                   type="text"
-                  className="tw:input tw:input-bordered tw:w-full tw:text-xl tw:font-bold"
+                  className="text-lg font-semibold"
                 />
-                <textarea
+                <Textarea
                   value={editDescription}
                   onChange={(e) => setEditDescription(e.target.value)}
-                  className="tw:textarea tw:textarea-bordered tw:w-full"
                   rows={3}
                 />
-                <div className="tw:flex tw:gap-2 tw:justify-end">
-                  <button
+                <div className="flex justify-end gap-2">
+                  <Button
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => setEditing(false)}
-                    className="tw:btn tw:btn-sm"
                   >
                     Cancel
-                  </button>
-                  <button type="submit" className="tw:btn tw:btn-sm tw:btn-primary">
+                  </Button>
+                  <Button type="submit" size="sm">
                     Save
-                  </button>
+                  </Button>
                 </div>
               </form>
             ) : (
-              <div className="tw:flex tw:items-start tw:justify-between">
+              <div className="flex items-start justify-between gap-4">
                 <div>
-                  <div className="tw:flex tw:items-center tw:gap-3 tw:mb-2">
-                    <span
-                      className={`tw:badge ${todo.is_completed ? 'tw:badge-success' : 'tw:badge-warning'}`}
-                    >
-                      {todo.is_completed ? 'Completed' : 'Active'}
-                    </span>
-                  </div>
+                  <Badge variant={todo.is_completed ? 'secondary' : 'outline'} className="mb-2">
+                    {todo.is_completed ? 'Completed' : 'Active'}
+                  </Badge>
                   <h1
-                    className={`tw:text-2xl tw:font-bold ${todo.is_completed ? 'tw:line-through tw:opacity-60' : ''}`}
+                    className={cn(
+                      'text-2xl font-bold tracking-tight',
+                      todo.is_completed && 'text-muted-foreground line-through',
+                    )}
                   >
                     {todo.title}
                   </h1>
                   {todo.description && (
-                    <p className="tw:mt-3 tw:text-base-content/70">{todo.description}</p>
+                    <p className="mt-3 text-muted-foreground">{todo.description}</p>
                   )}
                 </div>
                 {todo.user.id === user?.id && (
-                  <div className="tw:flex tw:gap-2">
-                    <button
-                      onClick={toggleComplete}
-                      className={`tw:btn tw:btn-sm tw:btn-outline ${todo.is_completed ? 'tw:btn-warning' : 'tw:btn-success'}`}
-                    >
-                      <Icon
-                        icon={todo.is_completed ? 'mdi:undo' : 'mdi:check'}
-                        className="tw:w-4 tw:h-4"
-                      />
+                  <div className="flex shrink-0 gap-2">
+                    <Button variant="outline" size="sm" onClick={toggleComplete}>
+                      {todo.is_completed ? <Undo2Icon /> : <CheckIcon />}
                       {todo.is_completed ? 'Reopen' : 'Complete'}
-                    </button>
-                    <button onClick={startEdit} className="tw:btn tw:btn-sm tw:btn-outline">
-                      <Icon icon="mdi:pencil" className="tw:w-4 tw:h-4" />
-                    </button>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon-sm"
+                      onClick={startEdit}
+                      aria-label="Edit todo"
+                    >
+                      <PencilIcon />
+                    </Button>
                   </div>
                 )}
               </div>
             )}
 
             {/* Meta */}
-            <div className="tw:flex tw:items-center tw:gap-4 tw:mt-4 tw:pt-4 tw:border-t tw:border-base-200 tw:text-sm tw:text-base-content/50">
+            <Separator />
+            <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <Link
                 to={`/users/${todo.user.id}`}
-                className="tw:flex tw:items-center tw:gap-1 hover:tw:text-primary"
+                className="flex items-center gap-1 transition-colors hover:text-foreground"
               >
-                <Icon icon="mdi:account" className="tw:w-4 tw:h-4" />
+                <UserIcon className="size-3.5" />
                 {todo.user.first_name} {todo.user.last_name} (@{todo.user.username})
               </Link>
               <span>{timeAgo(todo.createdAt)}</span>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   )

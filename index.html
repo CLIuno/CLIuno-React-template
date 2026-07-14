@@ -12,7 +12,7 @@
       const t =
         localStorage.getItem('theme') ||
         (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-      document.documentElement.setAttribute('data-theme', t)
+      document.documentElement.classList.toggle('dark', t === 'dark')
     </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

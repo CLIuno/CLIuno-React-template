@@ -1,5 +1,10 @@
-import { Icon } from '@iconify/react'
+import { AlertCircleIcon, EyeIcon, EyeOffIcon, Loader2Icon, RocketIcon } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default function LoginView() {
   const navigate = useNavigate()
@@ -20,94 +25,95 @@ export default function LoginView() {
   }
 
   return (
-    <div className="tw:min-h-screen tw:flex tw:items-center tw:justify-center tw:bg-base-200 tw:px-4">
-      <div className="tw:card tw:w-full tw:max-w-md tw:bg-base-100 tw:shadow-xl">
-        <div className="tw:card-body tw:p-8">
-          {/* Logo */}
-          <div className="tw:flex tw:items-center tw:justify-center tw:gap-2 tw:mb-2">
-            <Icon icon="mdi:rocket-launch-outline" className="tw:w-8 tw:h-8 tw:text-primary" />
-            <span className="tw:text-2xl tw:font-bold tw:text-primary">CLIuno</span>
-          </div>
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-background px-4 py-10 text-foreground">
+      {/* Brand */}
+      <Link to="/" className="flex items-center gap-2 font-semibold">
+        <RocketIcon className="size-5" />
+        <span className="text-lg tracking-tight">CLIuno</span>
+      </Link>
 
-          <h2 className="tw:text-2xl tw:font-bold tw:text-center tw:mb-1">Welcome back</h2>
-          <p className="tw:text-center tw:text-base-content/60 tw:mb-6">Sign in to your account</p>
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardDescription>Sign in to your account</CardDescription>
+        </CardHeader>
 
+        <CardContent className="space-y-4">
           {/* Error Alert */}
           {error && (
-            <div className="tw:alert tw:alert-error tw:mb-4">
-              <Icon icon="mdi:alert-circle" className="tw:w-5 tw:h-5" />
-              <span>{error}</span>
-            </div>
+            <Alert variant="destructive">
+              <AlertCircleIcon />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
 
-          <form onSubmit={handleLogin} className="tw:space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4">
             {/* Email/Username */}
-            <fieldset className="tw:fieldset">
-              <legend className="tw:fieldset-legend">Email or Username</legend>
-              <label className="tw:input tw:w-full">
-                <Icon icon="mdi:account-outline" className="tw:h-[1em] tw:opacity-50" />
-                <input
-                  value={usernameOrEmail}
-                  onChange={(e) => setUsernameOrEmail(e.target.value)}
-                  type="text"
-                  placeholder="Enter your email or username"
-                  className="tw:grow"
-                  required
-                />
-              </label>
-            </fieldset>
+            <div className="space-y-2">
+              <Label htmlFor="usernameOrEmail">Email or Username</Label>
+              <Input
+                id="usernameOrEmail"
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
+                type="text"
+                placeholder="Enter your email or username"
+                required
+              />
+            </div>
 
             {/* Password */}
-            <fieldset className="tw:fieldset">
-              <legend className="tw:fieldset-legend">Password</legend>
-              <label className="tw:input tw:w-full">
-                <Icon icon="mdi:lock-outline" className="tw:h-[1em] tw:opacity-50" />
-                <input
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
-                  className="tw:grow"
+                  className="pr-9"
                   required
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="icon-xs"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="tw:btn tw:btn-ghost tw:btn-xs tw:btn-circle"
+                  className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  <Icon icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'} className="tw:w-4 tw:h-4" />
-                </button>
-              </label>
-            </fieldset>
-
-            {/* Forgot Password */}
-            <div className="tw:flex tw:justify-end">
-              <Link to="/forgot-password" className="tw:link tw:link-primary tw:text-sm">
-                Forgot password?
-              </Link>
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </Button>
+              </div>
             </div>
 
             {/* Submit */}
-            <button
-              type="submit"
-              className={`tw:btn tw:btn-primary tw:w-full ${loading ? 'tw:loading' : ''}`}
-              disabled={loading}
-            >
-              {!loading && <Icon icon="mdi:login" className="tw:w-5 tw:h-5" />}
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading && <Loader2Icon className="animate-spin" />}
               {loading ? 'Signing in...' : 'Sign In'}
-            </button>
+            </Button>
           </form>
 
-          {/* Divider */}
-          <div className="tw:divider tw:text-sm">Don't have an account?</div>
-
           {/* Register Link */}
-          <Link to="/register" className="tw:btn tw:btn-outline tw:btn-secondary tw:w-full">
-            <Icon icon="mdi:account-plus-outline" className="tw:w-5 tw:h-5" />
-            Create Account
-          </Link>
-        </div>
-      </div>
+          <p className="text-center text-sm text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link
+              to="/register"
+              className="font-medium text-foreground underline-offset-4 hover:underline"
+            >
+              Create Account
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   )
 }

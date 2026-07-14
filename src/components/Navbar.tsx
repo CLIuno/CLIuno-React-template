@@ -1,130 +1,100 @@
-import { Icon } from '@iconify/react'
+import { ChevronDownIcon, LogOutIcon, RocketIcon, UserIcon } from 'lucide-react'
+import { useAuthStore } from '@/stores/auth'
 import ThemeToggle from '@/components/ThemeToggle'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
+
+const navLinks = [
+  { label: 'Todos', to: '/todos' },
+  { label: 'Posts', to: '/posts' },
+  { label: 'Users', to: '/users' },
+]
 
 export default function Navbar() {
-  const [showMenu, setShowMenu] = useState(false)
-  const isLoggedIn = !!localStorage.getItem('token')
-
-  const navButtons = [
-    { label: 'Docs', link: 'https://github.com/CLIuno', style: 'tw:btn-secondary' },
-    { label: 'Donate', link: 'https://ko-fi.com/ru44y', style: 'tw:btn-accent' },
-    { label: 'Star', link: 'https://github.com/CLIuno', style: 'tw:btn-info' },
-  ]
+  const { user, isAuthenticated, logout } = useAuthStore()
 
   return (
-    <header className="tw:bg-base-100 tw:shadow-sm tw:px-4 sm:tw:px-6 tw:py-3">
-      <nav className="tw:flex tw:items-center tw:justify-between tw:container tw:mx-auto">
-        {/* Logo */}
-        <Link to="/" className="tw:flex tw:items-center tw:gap-2">
-          <Icon icon="mdi:rocket-launch-outline" className="tw:w-6 tw:h-6 tw:text-primary" />
-          <span className="tw:text-xl tw:font-bold tw:text-primary">CLIuno</span>
+    <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur">
+      <nav className="container mx-auto flex h-14 items-center gap-4 px-4 sm:gap-6">
+        {/* Brand */}
+        <Link to="/" className="flex items-center gap-2 font-semibold">
+          <RocketIcon className="size-5" />
+          <span className="hidden text-lg tracking-tight sm:inline">CLIuno</span>
         </Link>
 
-        {/* Desktop Buttons */}
-        <div className="tw:hidden tw:md:flex tw:items-center">
+        {/* Nav links */}
+        <div className="flex items-center gap-4 sm:gap-5">
+          {navLinks.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              className={({ isActive }) =>
+                cn(
+                  'text-sm font-medium transition-colors hover:text-foreground',
+                  isActive ? 'text-foreground' : 'text-muted-foreground',
+                )
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Right side */}
+        <div className="ml-auto flex items-center gap-2">
           <ThemeToggle />
 
-          {navButtons.map((btn) => (
-            <a
-              key={btn.label}
-              href={btn.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={`tw:btn tw:btn-sm tw:ml-2 ${btn.style}`}
-            >
-              {btn.label}
-            </a>
-          ))}
-
-          {isLoggedIn ? (
-            <Link to="/todos" className="tw:btn tw:btn-sm tw:btn-primary tw:ml-2">
-              <Icon icon="mdi:clipboard-check-outline" className="tw:w-4 tw:h-4" />
-              Dashboard
-            </Link>
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={<Button variant="ghost" size="sm" className="gap-2 pl-1.5" />}
+              >
+                <Avatar size="sm">
+                  <AvatarFallback>{user?.username?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
+                </Avatar>
+                <span className="hidden sm:inline">{user?.username}</span>
+                <ChevronDownIcon className="text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user && (
+                  <>
+                    <DropdownMenuLabel>
+                      {user.first_name} {user.last_name}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem render={<Link to={`/users/${user.id}`} />}>
+                      <UserIcon />
+                      Profile
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuItem variant="destructive" onClick={() => logout()}>
+                  <LogOutIcon />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
-              <Link to="/login" className="tw:btn tw:btn-sm tw:btn-success tw:ml-2">
+              <Button variant="ghost" size="sm" render={<Link to="/login" />}>
                 Login
-              </Link>
-              <Link
-                to="/register"
-                className="tw:btn tw:btn-sm tw:btn-outline tw:btn-primary tw:ml-2"
-              >
+              </Button>
+              <Button size="sm" render={<Link to="/register" />}>
                 Register
-              </Link>
+              </Button>
             </>
           )}
         </div>
-
-        {/* Hamburger */}
-        <button
-          onClick={() => setShowMenu(!showMenu)}
-          className="tw:p-2 tw:rounded-md hover:tw:bg-base-200 tw:transition-colors tw:md:hidden"
-        >
-          <Icon
-            icon={showMenu ? 'mdi:close' : 'mdi:menu'}
-            className="tw:w-6 tw:h-6 tw:text-base-content"
-          />
-        </button>
       </nav>
-
-      {/* Mobile Menu */}
-      <div
-        className="tw:overflow-hidden tw:transition-all tw:duration-300 tw:ease-in-out tw:mx-auto tw:mt-1 tw:rounded-lg tw:bg-base-200 tw:shadow-md md:tw:hidden"
-        style={{ maxHeight: showMenu ? '500px' : '0px' }}
-      >
-        <div className="tw:p-3">
-          <ul className="tw:flex tw:flex-col tw:gap-2">
-            {navButtons.map((btn) => (
-              <li key={btn.label}>
-                <a
-                  href={btn.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="tw:block tw:px-4 tw:py-2 tw:rounded-md tw:transition-colors hover:tw:bg-base-300"
-                >
-                  {btn.label}
-                </a>
-              </li>
-            ))}
-            {isLoggedIn ? (
-              <li>
-                <Link
-                  to="/todos"
-                  className="tw:block tw:px-4 tw:py-2 tw:bg-primary tw:text-white tw:rounded-md"
-                >
-                  Dashboard
-                </Link>
-              </li>
-            ) : (
-              <>
-                <li>
-                  <Link
-                    to="/login"
-                    className="tw:block tw:px-4 tw:py-2 tw:bg-success tw:text-white tw:rounded-md"
-                  >
-                    Login
-                  </Link>
-                </li>
-                <li>
-                  <Link
-                    to="/register"
-                    className="tw:block tw:px-4 tw:py-2 tw:bg-primary/10 tw:text-primary tw:rounded-md"
-                  >
-                    Register
-                  </Link>
-                </li>
-              </>
-            )}
-            <li>
-              <div className="tw:flex tw:items-center tw:gap-2 tw:px-4 tw:py-2 tw:rounded-md hover:tw:bg-base-300">
-                <ThemeToggle />
-                Toggle Theme
-              </div>
-            </li>
-          </ul>
-        </div>
-      </div>
     </header>
   )
 }

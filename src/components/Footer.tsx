@@ -1,8 +1,8 @@
 export default function Footer() {
   return (
-    <footer className="tw:footer tw:footer-center tw:p-4 tw:bg-base-200 tw:text-base-content">
-      <div>
-        <p>© {new Date().getFullYear()} — Built with 💖 using React</p>
+    <footer className="border-t py-6">
+      <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+        © {new Date().getFullYear()} CLIuno — Built with React
       </div>
     </footer>
   )

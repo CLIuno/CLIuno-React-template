@@ -1,6 +1,9 @@
-import { Icon } from '@iconify/react'
+import { Loader2Icon, UserCheckIcon, UserPlusIcon, UsersIcon } from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 
 interface UserItem {
   id: string
@@ -66,75 +69,68 @@ export default function UsersView() {
   }, [fetchUsers])
 
   return (
-    <div className="tw:max-w-4xl tw:mx-auto tw:px-4 tw:py-8">
-      <div className="tw:mb-8">
-        <h1 className="tw:text-3xl tw:font-bold tw:text-base-content">Users</h1>
-        <p className="tw:text-base-content/60">Discover and follow other users</p>
+    <div className="mx-auto max-w-4xl px-4 py-8">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">Users</h1>
+        <p className="text-muted-foreground">Discover and follow other users</p>
       </div>
 
       {/* Loading */}
       {loading && (
-        <div className="tw:flex tw:justify-center tw:py-20">
-          <span className="tw:loading tw:loading-spinner tw:loading-lg tw:text-primary" />
+        <div className="flex justify-center py-20">
+          <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
 
       {/* Empty State */}
       {!loading && users.length === 0 && (
-        <div className="tw:text-center tw:py-20">
-          <Icon
-            icon="mdi:account-group-outline"
-            className="tw:w-16 tw:h-16 tw:mx-auto tw:text-base-content/30"
-          />
-          <h3 className="tw:text-xl tw:font-semibold tw:mt-4">No other users yet</h3>
-          <p className="tw:text-base-content/60 tw:mt-2">Be the first to invite someone!</p>
+        <div className="py-20 text-center">
+          <UsersIcon className="mx-auto size-14 text-muted-foreground/40" />
+          <h3 className="mt-4 text-xl font-semibold">No other users yet</h3>
+          <p className="mt-2 text-muted-foreground">Be the first to invite someone!</p>
         </div>
       )}
 
-      {/* Users Grid */}
+      {/* Users List */}
       {!loading && users.length > 0 && (
-        <div className="tw:grid tw:grid-cols-1 sm:tw:grid-cols-2 lg:tw:grid-cols-3 tw:gap-4">
+        <div className="space-y-3">
           {users.map((u) => (
-            <div
-              key={u.id}
-              className="tw:card tw:bg-base-100 tw:shadow-sm hover:tw:shadow-md tw:transition-shadow"
-            >
-              <div className="tw:card-body tw:items-center tw:text-center tw:p-6">
+            <Card key={u.id} className="transition-shadow hover:shadow-md">
+              <CardContent className="flex items-center gap-4">
                 {/* Avatar */}
-                <div className="tw:avatar tw:placeholder tw:mb-2">
-                  <div className="tw:bg-primary tw:text-primary-content tw:w-16 tw:h-16 tw:rounded-full">
-                    <span className="tw:text-xl">
-                      {u.first_name[0]}
-                      {u.last_name[0]}
-                    </span>
-                  </div>
+                <Avatar size="lg">
+                  <AvatarFallback>
+                    {u.first_name[0]}
+                    {u.last_name[0]}
+                  </AvatarFallback>
+                </Avatar>
+
+                <div className="min-w-0 flex-1">
+                  <Link
+                    to={`/users/${u.id}`}
+                    className="font-semibold transition-colors hover:text-primary"
+                  >
+                    {u.first_name} {u.last_name}
+                  </Link>
+                  <p className="truncate text-sm text-muted-foreground">
+                    @{u.username} · {u.email}
+                  </p>
                 </div>
 
-                <Link
-                  to={`/users/${u.id}`}
-                  className="tw:font-bold tw:text-lg hover:tw:text-primary tw:transition-colors"
-                >
-                  {u.first_name} {u.last_name}
-                </Link>
-                <p className="tw:text-base-content/60 tw:text-sm">@{u.username}</p>
-
-                <button
+                <Button
+                  variant={followingMap[u.id] ? 'outline' : 'default'}
+                  size="sm"
                   onClick={() => toggleFollow(u.id)}
                   disabled={togglingFollow[u.id]}
-                  className={`tw:btn tw:btn-sm tw:w-full tw:mt-2 ${followingMap[u.id] ? 'tw:btn-outline' : 'tw:btn-primary'}`}
+                  className="w-28 shrink-0"
                 >
-                  {togglingFollow[u.id] ? (
-                    <span className="tw:loading tw:loading-spinner tw:loading-xs" />
-                  ) : (
-                    <Icon
-                      icon={followingMap[u.id] ? 'mdi:account-check' : 'mdi:account-plus'}
-                      className="tw:w-4 tw:h-4"
-                    />
-                  )}
+                  {togglingFollow[u.id] && <Loader2Icon className="animate-spin" />}
+                  {!togglingFollow[u.id] &&
+                    (followingMap[u.id] ? <UserCheckIcon /> : <UserPlusIcon />)}
                   {followingMap[u.id] ? 'Following' : 'Follow'}
-                </button>
-              </div>
-            </div>
+                </Button>
+              </CardContent>
+            </Card>
           ))}
         </div>
       )}

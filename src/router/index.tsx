@@ -1,3 +1,4 @@
+import { Loader2Icon } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import DefaultLayout from '@/layouts/DefaultLayout'
 
@@ -37,8 +38,8 @@ export default function AppRouter() {
     <BrowserRouter>
       <Suspense
         fallback={
-          <div className="tw:flex tw:justify-center tw:items-center tw:min-h-screen">
-            <span className="tw:loading tw:loading-spinner tw:loading-lg tw:text-primary" />
+          <div className="flex min-h-screen items-center justify-center">
+            <Loader2Icon className="size-8 animate-spin text-muted-foreground" />
           </div>
         }
       >
