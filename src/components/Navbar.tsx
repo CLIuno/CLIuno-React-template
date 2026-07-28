@@ -1,7 +1,7 @@
 import { ChevronDownIcon, LogOutIcon, RocketIcon, UserIcon } from 'lucide-react'
 import { useAuthStore } from '@/stores/auth'
 import ThemeToggle from '@/components/ThemeToggle'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -59,6 +59,7 @@ export default function Navbar() {
                 render={<Button variant="ghost" size="sm" className="gap-2 pl-1.5" />}
               >
                 <Avatar size="sm">
+                  {user?.avatar_url && <AvatarImage src={user.avatar_url} alt={user.username} />}
                   <AvatarFallback>{user?.username?.charAt(0).toUpperCase() || '?'}</AvatarFallback>
                 </Avatar>
                 <span className="hidden sm:inline">{user?.username}</span>

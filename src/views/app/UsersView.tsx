@@ -1,13 +1,14 @@
 import { Loader2Icon, UserCheckIcon, UserPlusIcon, UsersIcon } from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface UserItem {
   id: string
   username: string
+  avatar_url?: string | null
   first_name: string
   last_name: string
   email: string
@@ -99,6 +100,7 @@ export default function UsersView() {
               <CardContent className="flex items-center gap-4">
                 {/* Avatar */}
                 <Avatar size="lg">
+                  {u.avatar_url && <AvatarImage src={u.avatar_url} alt={u.username} />}
                   <AvatarFallback>
                     {u.first_name[0]}
                     {u.last_name[0]}

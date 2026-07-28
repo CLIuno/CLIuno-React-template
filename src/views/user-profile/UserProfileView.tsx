@@ -1,7 +1,8 @@
 import { ArrowLeftIcon, Loader2Icon, UserCheckIcon, UserPlusIcon, UsersIcon } from 'lucide-react'
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useImageUpload } from '@/hooks/useImageUpload'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
@@ -12,6 +13,7 @@ interface ProfileUser {
   first_name: string
   last_name: string
   email: string
+  avatar_url?: string | null
 }
 
 interface FollowUser {
@@ -19,6 +21,7 @@ interface FollowUser {
   username: string
   first_name: string
   last_name: string
+  avatar_url?: string | null
 }
 
 function FollowList({ users, emptyText }: Readonly<{ users: FollowUser[]; emptyText: string }>) {
@@ -34,6 +37,7 @@ function FollowList({ users, emptyText }: Readonly<{ users: FollowUser[]; emptyT
           className="flex items-center gap-3 rounded-lg p-2 transition-colors hover:bg-muted"
         >
           <Avatar>
+            {f.avatar_url && <AvatarImage src={f.avatar_url} alt={f.username} />}
             <AvatarFallback className="text-xs">
               {f.first_name[0]}
               {f.last_name[0]}
@@ -52,12 +56,16 @@ function FollowList({ users, emptyText }: Readonly<{ users: FollowUser[]; emptyT
 }
 
 export default function UserProfileView() {
-  const { id: userId } = useParams<{ id: string }>()
-  const { user: currentUser } = useAuthStore()
+  const { id: routeUserId } = useParams<{ id: string }>()
+  const { user: currentUser, fetchCurrentUser } = useAuthStore()
+  // /profile renders this same view without an :id param
+  const userId = routeUserId ?? currentUser?.id
   const [profileUser, setProfileUser] = useState<ProfileUser | null>(null)
   const [loading, setLoading] = useState(true)
   const [isFollowing, setIsFollowing] = useState(false)
   const [togglingFollow, setTogglingFollow] = useState(false)
+  const { uploading, uploadError, uploadImage } = useImageUpload()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [followers, setFollowers] = useState<FollowUser[]>([])
   const [following, setFollowing] = useState<FollowUser[]>([])
 
@@ -86,6 +94,22 @@ export default function UserProfileView() {
       setLoading(false)
     }
   }, [userId, isOwnProfile])
+
+  async function onAvatarPicked(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.target
+    const file = input.files?.[0]
+    if (!file) return
+
+    const url = await uploadImage(file)
+    if (url) {
+      await api.user.updateCurrentUser({ avatar_url: url })
+      await fetchCurrentUser()
+      setProfileUser((prev) => (prev ? { ...prev, avatar_url: url } : prev))
+    }
+
+    // reset so re-picking the same file still fires change
+    input.value = ''
+  }
 
   async function toggleFollow() {
     if (!userId) return
@@ -141,18 +165,44 @@ export default function UserProfileView() {
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4">
                 {/* Avatar */}
-                <Avatar className="size-20">
-                  <AvatarFallback className="text-2xl">
-                    {profileUser.first_name[0]}
-                    {profileUser.last_name[0]}
-                  </AvatarFallback>
-                </Avatar>
+                <div className="flex flex-col items-center gap-2">
+                  <Avatar className="size-20">
+                    {profileUser.avatar_url && (
+                      <AvatarImage src={profileUser.avatar_url} alt={profileUser.username} />
+                    )}
+                    <AvatarFallback className="text-2xl">
+                      {profileUser.first_name[0]}
+                      {profileUser.last_name[0]}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  {isOwnProfile && (
+                    <>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="hidden"
+                        onChange={onAvatarPicked}
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={uploading}
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        {uploading ? 'Uploading…' : 'Change photo'}
+                      </Button>
+                    </>
+                  )}
+                </div>
 
                 <div className="min-w-0 flex-1">
                   <h1 className="text-2xl font-bold tracking-tight">
                     {profileUser.first_name} {profileUser.last_name}
                   </h1>
                   <p className="text-muted-foreground">@{profileUser.username}</p>
+                  {uploadError && <p className="mt-1 text-sm text-destructive">{uploadError}</p>}
                 </div>
 
                 {!isOwnProfile && (

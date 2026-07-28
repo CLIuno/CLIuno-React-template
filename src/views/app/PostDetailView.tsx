@@ -10,7 +10,7 @@ import {
 import api from '@/apis'
 import { useAuthStore } from '@/stores/auth'
 import { timeAgo } from '@/utils/timeAgo'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -21,17 +21,29 @@ interface Comment {
   id: string
   content: string
   createdAt: string
-  user: { id: string; username: string; first_name: string; last_name: string }
+  user: {
+    id: string
+    username: string
+    first_name: string
+    last_name: string
+    avatar_url?: string | null
+  }
 }
 
 interface Post {
   id: string
   title: string
   content: string
-  imageUrl: string
+  image_url?: string | null
   is_paid: boolean
   createdAt: string
-  user: { id: string; username: string; first_name: string; last_name: string }
+  user: {
+    id: string
+    username: string
+    first_name: string
+    last_name: string
+    avatar_url?: string | null
+  }
   comments: Comment[]
 }
 
@@ -183,6 +195,13 @@ export default function PostDetailView() {
                   <div className="min-w-0">
                     <h1 className="text-2xl font-bold tracking-tight">{post.title}</h1>
                     {post.content && <p className="mt-3 text-muted-foreground">{post.content}</p>}
+                    {post.image_url && (
+                      <img
+                        src={post.image_url}
+                        alt={post.title}
+                        className="mt-3 max-h-96 w-full rounded-md border object-cover"
+                      />
+                    )}
                   </div>
                   {post.user.id === user?.id && (
                     <Button
@@ -248,6 +267,9 @@ export default function PostDetailView() {
                   {post.comments.map((comment) => (
                     <div key={comment.id} className="flex gap-3">
                       <Avatar>
+                        {comment.user.avatar_url && (
+                          <AvatarImage src={comment.user.avatar_url} alt={comment.user.username} />
+                        )}
                         <AvatarFallback className="text-xs">
                           {comment.user.first_name[0]}
                           {comment.user.last_name[0]}
