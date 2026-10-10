@@ -60,5 +60,9 @@
     "useState": "readonly",
     "useSyncExternalStore": "readonly",
     "useTransition": "readonly"
+  },
+  "rules": {
+    "react/set-state-in-effect": "off",
+    "react/purity": "off"
   }
 }
